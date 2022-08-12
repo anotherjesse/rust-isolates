@@ -33,9 +33,28 @@ async fn echo(req: Request<Body>) -> Result<Response<Body>, hyper::Error> {
     }
 }
 
+fn print(
+    scope: &mut v8::HandleScope,
+    args: v8::FunctionCallbackArguments,
+    mut rv: v8::ReturnValue,
+) {
+    let result = args
+        .get(0)
+        .to_string(scope)
+        .unwrap()
+        .to_rust_string_lossy(scope);
+
+    let name = v8::String::new(scope, "returned string").unwrap();
+
+    // rv.set_empty_string();
+    rv.set(name.into());
+    // rv.set(name);
+    println!("printing: {}", result);
+}
+
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-    let addr = SocketAddr::from(([127, 0, 0, 1], 3000));
+    let addr = SocketAddr::from(([0, 0, 0, 0], 3000));
 
     init_v8();
 
@@ -67,8 +86,17 @@ fn run(code_str: &str) -> String {
     let context = v8::Context::new(scope);
     let scope = &mut v8::ContextScope::new(scope, context);
 
+    let object_template = v8::ObjectTemplate::new(scope);
+    let function_template = v8::FunctionTemplate::new(scope, print);
+    let name = v8::String::new(scope, "print").unwrap();
+
+    object_template.set(name.into(), function_template.into());
+    let context = v8::Context::new_from_template(scope, object_template);
+
+    let scope = &mut v8::ContextScope::new(scope, context);
+
     let code = v8::String::new(scope, code_str).unwrap();
-    println!("javascript code: {}", code.to_rust_string_lossy(scope));
+    // println!("javascript code: {}", code.to_rust_string_lossy(scope));
 
     match v8::Script::compile(scope, code, None) {
         Some(script) => {
