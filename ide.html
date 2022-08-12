@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <title>Hello!</title>
+
+</head>
+
+<body>
+  <textarea id="src">1 + 1</textarea>
+
+  <pre id="output"></pre>
+
+</body>
+
+<script>
+  function submit() {
+    let src = document.getElementById("src").value;
+    fetch('/run', { method: 'POST', body: src })
+      .then(res => res.text())
+      .then(results => {
+        console.log(results);
+        document.getElementById("output").innerText = results;
+      }).catch(err => {
+        console.log(err);
+      }
+      );
+    return false;
+  }
+
+  function handler(evt) {
+    if (evt.key === 'Enter' && evt.ctrlKey) {
+      evt.preventDefault();
+      submit();
+    }
+  }
+
+  document.getElementById('src').addEventListener('keypress', handler)
+
+</script>
+
+</html>
