@@ -15,8 +15,12 @@
 </body>
 
 <script>
+  let last;
+
   function submit() {
     let src = document.getElementById("src").value;
+    if (src === last) return;
+    last = src;
     fetch('/run', { method: 'POST', body: src })
       .then(res => res.text())
       .then(results => {
