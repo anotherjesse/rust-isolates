@@ -70,8 +70,14 @@ fn run(code_str: &str) -> String {
     let code = v8::String::new(scope, code_str).unwrap();
     println!("javascript code: {}", code.to_rust_string_lossy(scope));
 
-    let script = v8::Script::compile(scope, code, None).unwrap();
-    let result = script.run(scope).unwrap();
-    let result = result.to_string(scope).unwrap();
-    result.to_rust_string_lossy(scope)
+    match v8::Script::compile(scope, code, None) {
+        Some(script) => {
+            let result = script.run(scope).unwrap();
+            let result = result.to_string(scope).unwrap();
+            return result.to_rust_string_lossy(scope);
+        }
+        None => {
+            return "error compiling".to_string();
+        }
+    }
 }
